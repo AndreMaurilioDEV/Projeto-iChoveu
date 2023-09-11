@@ -123,7 +123,6 @@ export async function createCityElement(cityInfo) {
   const infoContainer = createElement('div', 'city-info-container');
   infoContainer.appendChild(tempContainer);
   infoContainer.appendChild(iconElement);
-
   const btnElement = createElement('button', 'btnCity', 'Ver Previsão');
   cities.appendChild(cityElement);
   cityElement.appendChild(headingElement);
