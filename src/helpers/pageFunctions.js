@@ -77,28 +77,22 @@ export function showForecast(forecastList) {
  * Recebe um objeto com as informações de uma cidade e retorna um elemento HTML
  */
 
-const listenerButton = async () => {
-  const searchInput = document.getElementById('search-input');
-  const searchValue = searchInput.value;
-  const cityPrev = await searchCities(searchValue);
-  const urlCityPrev = cityPrev.map(({ url }) => url);
+const listenerButton = async (urlCityListener) => {
   const TOKEN = import.meta.env.VITE_TOKEN;
-  const daysArray = await Promise.all(urlCityPrev.map(async (url) => {
-    const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${url}&days=7`);
-    const data = await response.json();
-    const forecastDays = data.forecast.forecastday;
-    const days = forecastDays.map((day) => {
-      return {
-        date: day.date,
-        maxTemp: day.day.maxtemp_c,
-        minTemp: day.day.mintemp_c,
-        condition: day.day.condition.text,
-        icon: day.day.condition.icon,
-      };
-    });
-    return days;
-  }));
-  return daysArray;
+  const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${urlCityListener}&days=7`);
+  const data = await response.json();
+  const forecastDays = data.forecast.forecastday;
+  const days = forecastDays.map((day) => {
+    return {
+      date: day.date,
+      maxTemp: day.day.maxtemp_c,
+      minTemp: day.day.mintemp_c,
+      condition: day.day.condition.text,
+      icon: day.day.condition.icon,
+      url: urlCityListener,
+    };
+  });
+  return days;
 };
 
 export async function createCityElement(cityInfo) {
@@ -134,8 +128,9 @@ export async function createCityElement(cityInfo) {
   const btnPrevisao = cityElement.querySelector('.btnCity');
   btnPrevisao.addEventListener('click', async () => {
     try {
-      const infosButton = await listenerButton();
-      showForecast(infosButton);
+      const urlCityListener = cityInfo.url;
+      const infoButton = await listenerButton(urlCityListener);
+      showForecast(infoButton);
     } catch (error) {
       console.log(error.message);
     }
