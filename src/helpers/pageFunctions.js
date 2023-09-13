@@ -78,65 +78,32 @@ export function showForecast(forecastList) {
  */
 
 const listenerButton = async () => {
-   const searchInput = document.getElementById('search-input');
+  const searchInput = document.getElementById('search-input');
   const searchValue = searchInput.value;
   const cityPrev = await searchCities(searchValue);
   const urlCityPrev = cityPrev.map(({ url }) => url);
   const TOKEN = import.meta.env.VITE_TOKEN;
-  const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${urlCityPrev}&days=7`);
-  const data = await response.json();
-  const forecastDays = data.forecast.forecastday;
-  const array = [];
-  for (let index = 0; index < forecastDays.length; index += 1) {
-    const objForecast = {
-      date: forecastDays[index].date,
-      maxTemp: forecastDays[index].day.maxtemp_c,
-      minTemp: forecastDays[index].day.mintemp_c,
-      condition: forecastDays[index].day.condition.text,
-      icon: forecastDays[index].day.condition.icon,
-    };
-    array.push(objForecast);
-  }
-  showForecast(array);
+  const daysArray = await Promise.all(urlCityPrev.map(async (url) => {
+    const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${url}&days=7`);
+    const data = await response.json();
+    const forecastDays = data.forecast.forecastday;
+    const days = forecastDays.map((day) => {
+      return {
+        date: day.date,
+        maxTemp: day.day.maxtemp_c,
+        minTemp: day.day.mintemp_c,
+        condition: day.day.condition.text,
+        icon: day.day.condition.icon,
+      };
+    });
+    return days;
+  }));
+  return daysArray;
 };
-  /*const searchInput = document.getElementById('search-input');
-  const searchValue = searchInput.value;
-  const cityPrev = await searchCities(searchValue);
-  const urlCityPrev = cityPrev.map(({ url }) => url);
-  const TOKEN = import.meta.env.VITE_TOKEN;
-  const array = [];
-  for (const urlCities of urlCityPrev) {
-  const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${urlCities}&days=7`);
-  const data = await response.json();
-  const forecastDays = data.forecast.forecastday;
-  for (const day of forecastDays){
-    const objForecast = {
-      date: day.date,
-      maxTemp: day.day.maxtemp_c,
-      minTemp: day.day.mintemp_c,
-      condition: day.day.condition.text,
-      icon: day.day.condition.icon,
-    };
-    console.log(objForecast);
-    array.push(objForecast);
-  }
-  for (let index = 0; index < forecastDays.length; index += 1) {
-    const objForecast = {
-      date: forecastDays[index].date,
-      maxTemp: forecastDays[index].day.maxtemp_c,
-      minTemp: forecastDays[index].day.mintemp_c,
-      condition: forecastDays[index].day.condition.text,
-      icon: forecastDays[index].day.condition.icon,
-    };
-    array.push(objForecast);
-  }
-  }
-  showForecast(array);
-};*/
 
 export async function createCityElement(cityInfo) {
   const cities = document.querySelector('#cities');
-  const { name, country, temp, condition, icon /* , url */ } = cityInfo;
+  const { name, country, temp, condition, icon } = cityInfo;
   const cityElement = createElement('li', 'city');
   const headingElement = createElement('div', 'city-heading');
   const nameElement = createElement('h2', 'city-name', name);
@@ -153,11 +120,10 @@ export async function createCityElement(cityInfo) {
 
   const iconElement = createElement('img', 'condition-icon');
   iconElement.src = icon.replace('64x64', '128x128');
-
+  const btnElement = createElement('button', 'btnCity', 'Ver previsão');
   const infoContainer = createElement('div', 'city-info-container');
   infoContainer.appendChild(tempContainer);
   infoContainer.appendChild(iconElement);
-  const btnElement = createElement('button', 'btnCity', 'Ver Previsão');
   cities.appendChild(cityElement);
   cityElement.appendChild(headingElement);
   headingElement.appendChild(nameElement);
@@ -165,12 +131,14 @@ export async function createCityElement(cityInfo) {
   cityElement.appendChild(infoContainer);
   cityElement.appendChild(btnElement);
 
-  const btnPrevisao = document.querySelectorAll('.btnCity');
-  btnPrevisao.forEach(button => {
-    button.addEventListener('click', () => {
-      const url = button.getAttribute('data-url');
-      listenerButton(url);
-    });
+  const btnPrevisao = cityElement.querySelector('.btnCity');
+  btnPrevisao.addEventListener('click', async () => {
+    try {
+      const infosButton = await listenerButton();
+      showForecast(infosButton);
+    } catch (error) {
+      console.log(error.message);
+    }
   });
   return cityElement;
 }
@@ -181,20 +149,19 @@ export async function createCityElement(cityInfo) {
 export async function handleSearch(event) {
   event.preventDefault();
   clearChildrenById('cities');
-  let objCities = {};
-  let objetoReturn = {};
   const searchInput = document.getElementById('search-input');
   const searchValue = searchInput.value;
-  // seu código aqui
-  const teste = await searchCities(searchValue);
-  for (let index = 0; index < teste.length; index += 1) {
-    objCities = {
-      name: teste[index].name,
-      country: teste[index].country,
-    };
-    const teste2 = await getWeatherByCity(teste[index].url);
-    objetoReturn = { ...objCities, ...teste2 };
-    createCityElement(objetoReturn);
+  try {
+    const citiesReturn = await searchCities(searchValue);
+    const cityInfoPromises = citiesReturn.map(async (city) => {
+      const cityUrl = await getWeatherByCity(city.url);
+      return cityUrl;
+    });
+    const cityInfos = await Promise.all(cityInfoPromises);
+    cityInfos.forEach((infoCities) => {
+      createCityElement(infoCities);
+    });
+  } catch (error) {
+    console.log(error.message);
   }
-  
 }
