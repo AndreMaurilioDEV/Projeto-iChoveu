@@ -2,8 +2,7 @@
 export const searchCities = async (term) => {
   const TOKEN = import.meta.env.VITE_TOKEN;
   const TERMO_DE_BUSCA = term;
-  const URL = `http://api.weatherapi.com/v1/search.json?lang=pt&key=${TOKEN}&q=${TERMO_DE_BUSCA}`;
-  const response = await fetch(URL);
+  const response = await fetch(`http://api.weatherapi.com/v1/search.json?lang=pt&key=${TOKEN}&q=${TERMO_DE_BUSCA}`);
   const data = await response.json();
   if(data.length === 0){
     window.alert('Nenhuma cidade encontrada')
