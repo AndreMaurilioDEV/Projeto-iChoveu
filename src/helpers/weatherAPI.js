@@ -1,7 +1,8 @@
 // Remova os comentários a medida que for implementando as funções
 export const searchCities = async (term) => {
   const TOKEN = import.meta.env.VITE_TOKEN;
-  const URL = `http://api.weatherapi.com/v1/search.json?lang=pt&key=${TOKEN}&q=${term}`;
+  const TERMO_DE_BUSCA = term;
+  const URL = `http://api.weatherapi.com/v1/search.json?lang=pt&key=${TOKEN}&q=${TERMO_DE_BUSCA}`;
   const response = await fetch(URL);
   const data = await response.json();
   if(data.length === 0){
