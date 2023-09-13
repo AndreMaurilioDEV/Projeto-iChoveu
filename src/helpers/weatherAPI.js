@@ -4,24 +4,12 @@ export const searchCities = async (term) => {
   const URL = `http://api.weatherapi.com/v1/search.json?lang=pt&key=${TOKEN}&q=${term}`;
   const response = await fetch(URL);
   const data = await response.json();
-  const arrayData= [];
   if(data.length === 0){
     window.alert('Nenhuma cidade encontrada')
   }
-  const mapData = data.map((city) => {
-    const objData = {
-      id: city.id,
-      name: city.name,
-      region: city.region,
-      country: city.country,
-      lat: city.lat,
-      lon: city.lon,
-      url: city.url,
-    };
-    arrayData.push(objData);
-  })
-  return arrayData;
-};
+  return data;
+  };
+
 
 export const getWeatherByCity = async (cityURL) => {
   let obj = {};
