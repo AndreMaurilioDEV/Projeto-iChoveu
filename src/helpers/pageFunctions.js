@@ -82,8 +82,8 @@ const listenerButton = async () => {
   const searchValue = searchInput.value;
   const cityPrev = await searchCities(searchValue);
   const urlCityPrev = cityPrev.map(({ url }) => url);
-  const { VITE_TOKEN } = import.meta.env;
-  const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${VITE_TOKEN}&q=${urlCityPrev}&days=7`);
+  const TOKEN = import.meta.env.VITE_TOKEN;
+  const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${urlCityPrev}&days=7`);
   const data = await response.json();
   const forecastDays = data.forecast.forecastday;
   const array = [];
@@ -141,19 +141,20 @@ export async function createCityElement(cityInfo) {
 export async function handleSearch(event) {
   event.preventDefault();
   clearChildrenById('cities');
-  let obj = {};
+  let objCities = {};
   let objetoReturn = {};
   const searchInput = document.getElementById('search-input');
   const searchValue = searchInput.value;
   // seu código aqui
   const teste = await searchCities(searchValue);
-  const teste2 = await getWeatherByCity(searchValue);
   for (let index = 0; index < teste.length; index += 1) {
-    obj = {
+    objCities = {
       name: teste[index].name,
       country: teste[index].country,
     };
+    const teste2 = await getWeatherByCity(teste[index].url);
+    objetoReturn = { ...objCities, ...teste2 };
+    createCityElement(objetoReturn);
   }
-  objetoReturn = { ...obj, ...teste2 };
-  createCityElement(objetoReturn);
+  
 }
