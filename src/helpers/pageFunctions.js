@@ -78,7 +78,7 @@ export function showForecast(forecastList) {
  */
 
 const listenerButton = async () => {
-  const searchInput = document.getElementById('search-input');
+   const searchInput = document.getElementById('search-input');
   const searchValue = searchInput.value;
   const cityPrev = await searchCities(searchValue);
   const urlCityPrev = cityPrev.map(({ url }) => url);
@@ -99,6 +99,40 @@ const listenerButton = async () => {
   }
   showForecast(array);
 };
+  /*const searchInput = document.getElementById('search-input');
+  const searchValue = searchInput.value;
+  const cityPrev = await searchCities(searchValue);
+  const urlCityPrev = cityPrev.map(({ url }) => url);
+  const TOKEN = import.meta.env.VITE_TOKEN;
+  const array = [];
+  for (const urlCities of urlCityPrev) {
+  const response = await fetch(`http://api.weatherapi.com/v1/forecast.json?lang=pt&key=${TOKEN}&q=${urlCities}&days=7`);
+  const data = await response.json();
+  const forecastDays = data.forecast.forecastday;
+  for (const day of forecastDays){
+    const objForecast = {
+      date: day.date,
+      maxTemp: day.day.maxtemp_c,
+      minTemp: day.day.mintemp_c,
+      condition: day.day.condition.text,
+      icon: day.day.condition.icon,
+    };
+    console.log(objForecast);
+    array.push(objForecast);
+  }
+  for (let index = 0; index < forecastDays.length; index += 1) {
+    const objForecast = {
+      date: forecastDays[index].date,
+      maxTemp: forecastDays[index].day.maxtemp_c,
+      minTemp: forecastDays[index].day.mintemp_c,
+      condition: forecastDays[index].day.condition.text,
+      icon: forecastDays[index].day.condition.icon,
+    };
+    array.push(objForecast);
+  }
+  }
+  showForecast(array);
+};*/
 
 export async function createCityElement(cityInfo) {
   const cities = document.querySelector('#cities');
@@ -130,8 +164,14 @@ export async function createCityElement(cityInfo) {
   headingElement.appendChild(countryElement);
   cityElement.appendChild(infoContainer);
   cityElement.appendChild(btnElement);
-  const btnPrevisao = document.querySelector('.btnCity');
-  btnPrevisao.addEventListener('click', listenerButton);
+
+  const btnPrevisao = document.querySelectorAll('.btnCity');
+  btnPrevisao.forEach(button => {
+    button.addEventListener('click', () => {
+      const url = button.getAttribute('data-url');
+      listenerButton(url);
+    });
+  });
   return cityElement;
 }
 
